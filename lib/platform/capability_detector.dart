@@ -12,12 +12,15 @@ class CapabilityDetector {
 
   List<CapabilityStatus> detect() {
     final windows = !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+    final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
     return [
       CapabilityStatus(
         capability: Capability.systemStatus,
         available: true,
         reason: windows
             ? 'Windows memory, disk, CPU, and process APIs are connected.'
+            : android
+            ? 'Android memory, disk, battery, and CPU APIs are connected.'
             : 'Basic platform identity is available.',
       ),
       CapabilityStatus(
@@ -57,9 +60,11 @@ class CapabilityDetector {
       ),
       CapabilityStatus(
         capability: Capability.settingsLaunch,
-        available: windows,
+        available: windows || android,
         reason: windows
             ? 'Allowlisted Windows Settings pages can be opened.'
+            : android
+            ? 'Allowlisted Android Settings intents can be opened.'
             : 'A native settings adapter has not been installed.',
       ),
       CapabilityStatus(
