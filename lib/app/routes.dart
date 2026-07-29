@@ -7,6 +7,7 @@ enum AppSection {
   settings('การตั้งค่าระบบ'),
   diagnostics('การวินิจฉัย'),
   permissions('สิทธิ์และความปลอดภัย'),
+  antiTheft('ป้องกันการขโมย'),
   privacy('Privacy & Ad Blocking');
 
   const AppSection(this.label);

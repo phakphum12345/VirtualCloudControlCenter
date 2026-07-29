@@ -86,6 +86,18 @@ class CapabilityDetector {
         available: false,
         reason: 'Content filtering is planned for a later phase.',
       ),
+      const CapabilityStatus(
+        capability: Capability.antiTheftCamera,
+        available: false,
+        reason:
+            'Owner policy is available, but no native camera adapter has been verified.',
+      ),
+      const CapabilityStatus(
+        capability: Capability.antiTheftUpload,
+        available: false,
+        reason:
+            'No owner-authorized Google Drive account and folder are connected.',
+      ),
     ];
   }
 }

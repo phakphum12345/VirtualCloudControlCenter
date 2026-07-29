@@ -8,6 +8,8 @@ enum Capability {
   settingsLaunch,
   volumeControl,
   contentFiltering,
+  antiTheftCamera,
+  antiTheftUpload,
 }
 
 class CapabilityStatus {

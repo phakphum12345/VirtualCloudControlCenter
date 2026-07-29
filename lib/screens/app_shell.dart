@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/app_dependencies.dart';
 import '../app/routes.dart';
 import 'ai_chat_screen.dart';
+import 'anti_theft_screen.dart';
 import 'app_manager_screen.dart';
 import 'diagnostics_screen.dart';
 import 'file_manager_screen.dart';
@@ -107,6 +108,9 @@ class _AppShellState extends State<AppShell> {
       detector: widget.dependencies.capabilityDetector,
       auditLog: widget.dependencies.appController.auditLog,
     ),
+    AppSection.antiTheft => AntiTheftScreen(
+      controller: widget.dependencies.antiTheftController,
+    ),
     AppSection.privacy => const PrivacyScreen(),
   };
 }
@@ -129,6 +133,7 @@ class _NavigationList extends StatelessWidget {
     AppSection.settings: Icons.settings_outlined,
     AppSection.diagnostics: Icons.monitor_heart_outlined,
     AppSection.permissions: Icons.shield_outlined,
+    AppSection.antiTheft: Icons.phonelink_lock_outlined,
     AppSection.privacy: Icons.visibility_off_outlined,
   };
 
