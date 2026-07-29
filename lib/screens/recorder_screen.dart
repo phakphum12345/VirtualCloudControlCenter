@@ -14,11 +14,75 @@ class RecorderScreen extends StatefulWidget {
 }
 
 class _RecorderScreenState extends State<RecorderScreen> {
-  bool microphone = true;
+  bool microphone = false;
   bool systemAudio = false;
   String quality = '1080p';
   int fps = 30;
   int countdown = 3;
+  bool recording = false;
+  bool paused = false;
+  bool starting = false;
+  int countdownRemaining = 0;
+  String? outputFile;
+  final List<String> history = [];
+
+  Future<void> _start() async {
+    final action = createAction(
+      'screen_recording.start',
+      parameters: {
+        'source': 'display',
+        'microphone': microphone,
+        'systemAudio': systemAudio,
+        'quality': quality,
+        'fps': fps,
+        'countdownSeconds': countdown,
+      },
+      risk: RiskLevel.confirmationRequired,
+    );
+    if (!await confirmAction(context, action) || !mounted) return;
+    setState(() {
+      starting = true;
+      countdownRemaining = countdown;
+    });
+    while (countdownRemaining > 0 && mounted) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      if (mounted) setState(() => countdownRemaining--);
+    }
+    if (!mounted) return;
+    final result = await widget.controller.executeAction(
+      action,
+      confirm: (_) async => true,
+    );
+    if (!mounted) return;
+    setState(() {
+      starting = false;
+      recording = result.success;
+      paused = false;
+      outputFile = result.details['outputFile']?.toString();
+    });
+    showActionResult(context, result);
+  }
+
+  Future<void> _control(String name) async {
+    final result = await widget.controller.executeAction(
+      createAction(name),
+      confirm: (action) => confirmAction(context, action),
+    );
+    if (!mounted) return;
+    setState(() {
+      if (name == 'screen_recording.pause' && result.success) paused = true;
+      if (name == 'screen_recording.resume' && result.success) paused = false;
+      if (name == 'screen_recording.stop' && result.success) {
+        recording = false;
+        paused = false;
+        outputFile = result.details['outputFile']?.toString() ?? outputFile;
+        if (outputFile != null && !history.contains(outputFile)) {
+          history.insert(0, outputFile!);
+        }
+      }
+    });
+    showActionResult(context, result);
+  }
 
   Future<void> _screenshot() async {
     final result = await widget.controller.executeAction(
@@ -44,15 +108,47 @@ class _RecorderScreenState extends State<RecorderScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
+                if (recording || starting)
+                  Card(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    child: ListTile(
+                      leading: Icon(
+                        starting
+                            ? Icons.timer_outlined
+                            : paused
+                            ? Icons.pause_circle
+                            : Icons.fiber_manual_record,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      title: Text(
+                        starting
+                            ? 'เริ่มใน $countdownRemaining วินาที'
+                            : paused
+                            ? 'พักการบันทึก'
+                            : 'กำลังบันทึกหน้าจอ',
+                      ),
+                      subtitle: outputFile == null ? null : Text(outputFile!),
+                    ),
+                  ),
                 SwitchListTile(
                   value: microphone,
-                  onChanged: (value) => setState(() => microphone = value),
+                  onChanged: recording || starting
+                      ? null
+                      : (value) => setState(() => microphone = value),
                   title: const Text('ไมโครโฟน'),
+                  subtitle: const Text(
+                    'Windows capture backend รุ่นนี้ยังไม่รองรับ',
+                  ),
                 ),
                 SwitchListTile(
                   value: systemAudio,
-                  onChanged: (value) => setState(() => systemAudio = value),
+                  onChanged: recording || starting
+                      ? null
+                      : (value) => setState(() => systemAudio = value),
                   title: const Text('เสียงจากระบบ'),
+                  subtitle: const Text(
+                    'Windows capture backend รุ่นนี้ยังไม่รองรับ',
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -99,9 +195,27 @@ class _RecorderScreenState extends State<RecorderScreen> {
                   runSpacing: 12,
                   children: [
                     FilledButton.icon(
-                      onPressed: null,
+                      onPressed: recording || starting ? null : _start,
                       icon: Icon(Icons.fiber_manual_record),
                       label: Text('เริ่มบันทึก'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: !recording
+                          ? null
+                          : () => _control(
+                              paused
+                                  ? 'screen_recording.resume'
+                                  : 'screen_recording.pause',
+                            ),
+                      icon: Icon(paused ? Icons.play_arrow : Icons.pause),
+                      label: Text(paused ? 'บันทึกต่อ' : 'พัก'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: !recording
+                          ? null
+                          : () => _control('screen_recording.stop'),
+                      icon: const Icon(Icons.stop),
+                      label: const Text('หยุดและบันทึกไฟล์'),
                     ),
                     OutlinedButton.icon(
                       onPressed: _screenshot,
@@ -112,12 +226,29 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'ยังไม่มี native recorder adapter จึงไม่เปิดปุ่มและไม่รายงานว่าบันทึกสำเร็จ',
+                  'รองรับวิดีโอเต็มจอแบบ H.264 MP4 เฉพาะ Windows; '
+                  'หากเลือกเสียง ระบบจะปฏิเสธอย่างชัดเจน',
                 ),
               ],
             ),
           ),
         ),
+        if (history.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text('ประวัติไฟล์', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                for (final file in history)
+                  ListTile(
+                    leading: const Icon(Icons.video_file_outlined),
+                    title: Text(file),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

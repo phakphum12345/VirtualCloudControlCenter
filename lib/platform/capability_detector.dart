@@ -27,10 +27,12 @@ class CapabilityDetector {
             ? 'Windows large-file search is available.'
             : 'A native file adapter has not been installed.',
       ),
-      const CapabilityStatus(
+      CapabilityStatus(
         capability: Capability.screenRecording,
-        available: false,
-        reason: 'A native recorder adapter has not been installed.',
+        available: windows,
+        reason: windows
+            ? 'Visible full-display H.264 MP4 recording is available without audio.'
+            : 'A native recorder adapter has not been installed.',
       ),
       CapabilityStatus(
         capability: Capability.screenshot,

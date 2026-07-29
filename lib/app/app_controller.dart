@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../ai_engine/ai_service.dart';
@@ -5,6 +7,7 @@ import '../core/actions/assistant_action.dart';
 import '../core/audit_log/audit_entry.dart';
 import '../core/audit_log/audit_log_controller.dart';
 import '../core/emergency_stop/emergency_stop_controller.dart';
+import '../core/models/risk_level.dart';
 import '../core/permissions/permission_policy.dart';
 import '../platform/action_result.dart';
 import '../platform/platform_controller.dart';
@@ -113,6 +116,7 @@ class AppController extends ChangeNotifier {
   void triggerEmergencyStop() {
     emergencyStop.stop();
     _lastResult = _localFailure('', 'หยุดการทำงานทั้งหมดแล้ว');
+    unawaited(_stopNativeOperations());
     notifyListeners();
   }
 
@@ -138,6 +142,27 @@ class AppController extends ChangeNotifier {
     );
     notifyListeners();
     return result;
+  }
+
+  Future<void> _stopNativeOperations() async {
+    final action = AssistantAction(
+      id: 'emergency_${DateTime.now().microsecondsSinceEpoch}',
+      action: 'screen_recording.stop',
+      parameters: const {},
+      risk: RiskLevel.safe,
+    );
+    final result = await _platformController.execute(action);
+    await auditLog.add(
+      AuditEntry(
+        id: action.id,
+        action: 'emergency_stop',
+        message: result.success
+            ? 'Emergency Stop terminated native recording.'
+            : 'Emergency Stop active; no native recording was terminated.',
+        success: true,
+        timestamp: DateTime.now(),
+      ),
+    );
   }
 
   ActionResult _localFailure(String commandId, String message) => ActionResult(

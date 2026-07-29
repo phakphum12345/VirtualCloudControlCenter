@@ -1,4 +1,5 @@
 #include "windows_assistant.h"
+#include "windows_recorder.h"
 
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
@@ -97,6 +98,13 @@ int IntArgument(const EncodableMap* arguments, const char* key, int fallback) {
     return static_cast<int>(*number);
   }
   return fallback;
+}
+
+bool BoolArgument(const EncodableMap* arguments, const char* key,
+                  bool fallback) {
+  const auto* value = FindValue(arguments, key);
+  const auto* boolean = value ? std::get_if<bool>(value) : nullptr;
+  return boolean ? *boolean : fallback;
 }
 
 EncodableMap SuccessMap(const std::string& message) {
@@ -440,6 +448,39 @@ EncodableValue TakeScreenshot() {
   return result;
 }
 
+WindowsRecorder& Recorder() {
+  static WindowsRecorder recorder;
+  return recorder;
+}
+
+EncodableValue RecorderResultMap(const RecorderResult& recorder_result) {
+  EncodableMap result = recorder_result.success
+                            ? SuccessMap(recorder_result.message)
+                            : FailureMap(recorder_result.message);
+  if (!recorder_result.output_file.empty()) {
+    result[EncodableValue("outputFile")] =
+        EncodableValue(recorder_result.output_file);
+  }
+  return result;
+}
+
+EncodableValue StartRecording(const EncodableMap* arguments) {
+  if (BoolArgument(arguments, "microphone", false) ||
+      BoolArgument(arguments, "systemAudio", false)) {
+    return FailureMap(
+        "Microphone and system audio recording are not available in this "
+        "capture backend. Disable both audio options to continue.");
+  }
+  const std::string source = StringArgument(arguments, "source");
+  if (!source.empty() && source != "display") {
+    return FailureMap(
+        "This Windows capture backend currently supports full display only.");
+  }
+  return RecorderResultMap(
+      Recorder().Start(IntArgument(arguments, "fps", 30),
+                       StringArgument(arguments, "quality")));
+}
+
 void HandleMethodCall(const MethodCall<EncodableValue>& call,
                       std::unique_ptr<MethodResult<EncodableValue>> result) {
   const auto* arguments = Arguments(call);
@@ -461,6 +502,16 @@ void HandleMethodCall(const MethodCall<EncodableValue>& call,
     result->Success(FindLargeFiles(arguments));
   } else if (call.method_name() == "takeScreenshot") {
     result->Success(TakeScreenshot());
+  } else if (call.method_name() == "startRecording") {
+    result->Success(StartRecording(arguments));
+  } else if (call.method_name() == "pauseRecording") {
+    result->Success(RecorderResultMap(Recorder().Pause()));
+  } else if (call.method_name() == "resumeRecording") {
+    result->Success(RecorderResultMap(Recorder().Resume()));
+  } else if (call.method_name() == "stopRecording") {
+    result->Success(RecorderResultMap(Recorder().Stop()));
+  } else if (call.method_name() == "recordingStatus") {
+    result->Success(RecorderResultMap(Recorder().Status()));
   } else {
     result->NotImplemented();
   }

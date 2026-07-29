@@ -16,13 +16,17 @@ com.phakphum.aiassistant/windows
 - Default output volume control from 0 to 100 percent
 - Large-file discovery in Downloads, skipping inaccessible folders
 - Visible full-desktop screenshots saved under Pictures/Phakphum AI
+- Visible full-display H.264 MP4 recording saved under Videos/Phakphum AI
+- Recording countdown, pause, resume, stop, output path, and session history
+- Emergency Stop terminates an active native recording
 
-## Intentionally unavailable
+## Current recording boundary
 
-Screen recording remains unavailable until a Windows Graphics Capture pipeline
-with explicit source selection, visible recording state, microphone/system-audio
-handling, and verified output-file finalization is implemented. The application
-does not claim that recording succeeded.
+The current recorder captures the Windows virtual desktop through a GDI frame
+source and encodes it through Windows Media Foundation. Microphone audio, system
+audio, and selected-window capture remain unavailable. When either audio option
+is requested, the native adapter returns failure and does not start recording.
+Successful stop is reported only after the MP4 sink writer finalizes the file.
 
 ## Native safety boundaries
 

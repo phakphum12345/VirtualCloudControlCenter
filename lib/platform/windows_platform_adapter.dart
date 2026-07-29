@@ -25,6 +25,11 @@ class WindowsPlatformAdapter implements PlatformAdapter {
       'application.close' => 'closeApplication',
       'file.search_large' => 'findLargeFiles',
       'screenshot.take' => 'takeScreenshot',
+      'screen_recording.start' => 'startRecording',
+      'screen_recording.pause' => 'pauseRecording',
+      'screen_recording.resume' => 'resumeRecording',
+      'screen_recording.stop' => 'stopRecording',
+      'screen_recording.status' => 'recordingStatus',
       _ => null,
     };
     if (method == null) {

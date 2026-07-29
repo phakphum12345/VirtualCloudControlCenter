@@ -9,7 +9,7 @@ shell, Thai/English rule-based command parsing, action planning, risk and
 permission enforcement, persistent local audit logs, emergency stop, capability
 reporting, Windows diagnostics, process inspection and confirmed termination,
 allowlisted application/settings launching, volume control, large-file search,
-and visible screenshots.
+visible screenshots, and visible full-display H.264 MP4 recording.
 
 ```bash
 flutter pub get
@@ -18,8 +18,9 @@ flutter analyze
 flutter test
 ```
 
-Screen recording remains intentionally disabled until the native capture and
-audio pipeline can return a verified output file. See
+Windows recording supports video, countdown, pause, resume, stop, emergency
+termination, and verified output finalization. Microphone audio, system audio,
+and selected-window capture remain unavailable and return explicit failure. See
 [`docs/WINDOWS_PHASE2.md`](docs/WINDOWS_PHASE2.md) for the exact support boundary.
 
 ## Application information

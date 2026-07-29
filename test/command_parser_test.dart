@@ -23,6 +23,12 @@ void main() {
       expect(parser.parse('Show system status').action, 'diagnostics.status');
     });
 
+    test('parses recording lifecycle commands', () {
+      expect(parser.parse('pause recording').action, 'screen_recording.pause');
+      expect(parser.parse('บันทึกต่อ').action, 'screen_recording.resume');
+      expect(parser.parse('stop recording').action, 'screen_recording.stop');
+    });
+
     test('marks security bypass commands as restricted', () {
       final command = parser.parse('ปิดแอนติไวรัส');
       expect(command.action, startsWith('restricted.'));

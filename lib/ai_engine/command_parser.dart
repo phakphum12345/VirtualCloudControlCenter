@@ -30,6 +30,12 @@ class RuleBasedCommandParser implements CommandParser {
     if (_contains(text, ['หยุดบันทึก', 'หยุดอัด', 'stop recording'])) {
       return const ParsedCommand('screen_recording.stop');
     }
+    if (_contains(text, ['พักการบันทึก', 'pause recording'])) {
+      return const ParsedCommand('screen_recording.pause');
+    }
+    if (_contains(text, ['บันทึกต่อ', 'resume recording'])) {
+      return const ParsedCommand('screen_recording.resume');
+    }
     if (_contains(text, ['จับภาพ', 'screenshot'])) {
       return const ParsedCommand('screenshot.take');
     }

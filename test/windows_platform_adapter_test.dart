@@ -39,13 +39,43 @@ void main() {
     expect(result.details['memoryLoadPercent'], 42);
   });
 
-  test('returns honest failure for missing native method', () async {
+  test('maps screen recording to verified native method', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'startRecording');
+          return {
+            'success': true,
+            'message': 'started',
+            'outputFile': r'C:\Videos\recording.mp4',
+          };
+        });
+
     final result = await adapter.execute(
       const AssistantAction(
         id: 'record',
         action: 'screen_recording.start',
-        parameters: {},
+        parameters: {
+          'source': 'display',
+          'microphone': false,
+          'systemAudio': false,
+          'quality': '1080p',
+          'fps': 30,
+        },
         risk: RiskLevel.confirmationRequired,
+      ),
+    );
+
+    expect(result.success, isTrue);
+    expect(result.details['outputFile'], r'C:\Videos\recording.mp4');
+  });
+
+  test('returns honest failure for unmapped action', () async {
+    final result = await adapter.execute(
+      const AssistantAction(
+        id: 'unsupported',
+        action: 'screen_recording.select_window',
+        parameters: {},
+        risk: RiskLevel.safe,
       ),
     );
 
