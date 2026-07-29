@@ -1,6 +1,7 @@
 import '../core/actions/assistant_action.dart';
 import 'action_result.dart';
 import 'android_platform_adapter.dart';
+import 'linux_platform_adapter.dart';
 import 'windows_platform_adapter.dart';
 
 abstract interface class PlatformAdapter {
@@ -14,6 +15,9 @@ PlatformAdapter createPlatformAdapter(String platformName) {
   }
   if (platformName == 'android') {
     return const AndroidPlatformAdapter();
+  }
+  if (platformName == 'linux') {
+    return const LinuxPlatformAdapter();
   }
   return SharedPlatformAdapter(platformName);
 }
