@@ -1,0 +1,454 @@
+PHakphum AI System Assistant
+============================
+
+Project Name:
+Phakphum AI System Assistant
+
+Application ID:
+com.phakphum.aiassistant
+
+Project Type:
+Cross-platform AI system assistant and screen recorder
+
+Supported Platforms:
+- Windows
+- macOS
+- Linux
+- Android
+- iOS / iPadOS
+- Web / ChromeOS
+
+Main Goal:
+Create one AI assistant application that can receive Thai or English commands
+and help users manage screen recording, applications, files, device settings,
+system diagnostics, and common troubleshooting tasks.
+
+IMPORTANT PLATFORM LIMITATION:
+Each operating system provides different permissions. The application must never
+claim that a command succeeded unless the native platform adapter confirms it.
+
+======================================================================
+1. MAIN FEATURES
+======================================================================
+
+1. AI Command Center
+- Accept text commands in Thai and English.
+- Accept voice commands.
+- Convert natural language into structured actions.
+- Show the planned actions before important changes.
+- Report the real result of every action.
+- Support command history.
+- Support emergency stop.
+
+Examples:
+- Start recording the screen with microphone audio.
+- Open Visual Studio Code.
+- Open my Flutter project.
+- Reduce volume to 30 percent.
+- Show applications using the most RAM.
+- Find large files in Downloads.
+- Open Bluetooth settings.
+- Stop recording and save the file as Flutter Tutorial.
+
+2. Screen Recorder
+- Record the full display.
+- Record a selected window when supported.
+- Record microphone audio.
+- Record system audio when supported.
+- Pause, resume, and stop recording.
+- Take screenshots.
+- Set countdown before recording.
+- Select output resolution.
+- Select frame rate.
+- Display a visible recording indicator.
+- Save recording history.
+- Open the output folder.
+
+3. Application Manager
+- Find installed applications.
+- Open applications.
+- Close applications after confirmation.
+- Detect unresponsive applications.
+- Show CPU and memory use.
+- Restart an application after confirmation.
+- Open an application location when supported.
+- Open uninstall or application settings pages.
+
+4. System Settings Assistant
+- Open relevant settings pages.
+- Control volume where permitted.
+- Control screen brightness where permitted.
+- Open Wi-Fi settings.
+- Open Bluetooth settings.
+- Open microphone settings.
+- Open camera settings.
+- Open display settings.
+- Open storage settings.
+- Open battery settings.
+- Open notification settings.
+- Change theme where permitted.
+
+5. File Manager
+- Search files and folders.
+- Create folders.
+- Rename files.
+- Copy files.
+- Move files.
+- Open file locations.
+- Find large files.
+- Find duplicate files.
+- Compress and extract ZIP files.
+- Organize recordings and screenshots.
+- Move deleted files to the recycle bin or trash where possible.
+- Require confirmation before permanent deletion.
+
+6. System Diagnostics
+- Show CPU usage.
+- Show memory usage.
+- Show disk usage.
+- Show battery information.
+- Show active processes.
+- Test network connectivity.
+- Detect low disk space.
+- Detect common application failures.
+- Read user-approved logs.
+- Suggest safe troubleshooting actions.
+
+7. AI Safety and Permission Center
+- Safe actions can run immediately.
+- Important system changes require confirmation.
+- High-risk actions require explicit confirmation.
+- Dangerous commands must be blocked.
+- All actions must be written to an activity log.
+- The user must be able to stop the AI immediately.
+
+======================================================================
+2. PERMISSION LEVELS
+======================================================================
+
+SAFE:
+- Open an application.
+- Open a settings page.
+- Search files.
+- Read system status.
+- Take a screenshot after permission.
+
+CONFIRMATION REQUIRED:
+- Close an application.
+- Change system settings.
+- Move many files.
+- Start screen recording.
+- Restart an application.
+- Install or uninstall software.
+- Restart or shut down the device.
+
+RESTRICTED:
+- Permanently delete files without confirmation.
+- Disable antivirus or firewall protection.
+- Bypass operating system permission prompts.
+- Record the screen, camera, or microphone secretly.
+- Read private application data without permission.
+- Send files or personal data without confirmation.
+- Run unrestricted AI-generated shell commands.
+- Perform payments or financial transactions.
+
+======================================================================
+3. CROSS-PLATFORM ARCHITECTURE
+======================================================================
+
+Technology:
+- Flutter for the shared user interface.
+- Dart for the main application logic.
+- Native platform adapters for operating system features.
+- Local database for settings, command history, and activity logs.
+- Optional online AI provider.
+- Optional local AI provider for offline commands.
+
+Project Structure:
+
+phakphum_ai_assistant/
+|-- lib/
+|   |-- main.dart
+|   |-- app/
+|   |   |-- app.dart
+|   |   |-- routes.dart
+|   |   `-- theme.dart
+|   |-- screens/
+|   |   |-- home_screen.dart
+|   |   |-- ai_chat_screen.dart
+|   |   |-- recorder_screen.dart
+|   |   |-- app_manager_screen.dart
+|   |   |-- file_manager_screen.dart
+|   |   |-- system_settings_screen.dart
+|   |   |-- diagnostics_screen.dart
+|   |   `-- permission_center_screen.dart
+|   |-- ai_engine/
+|   |   |-- command_parser.dart
+|   |   |-- command_planner.dart
+|   |   |-- command_validator.dart
+|   |   |-- risk_classifier.dart
+|   |   `-- ai_service.dart
+|   |-- core/
+|   |   |-- actions/
+|   |   |-- capabilities/
+|   |   |-- permissions/
+|   |   |-- audit_log/
+|   |   |-- emergency_stop/
+|   |   `-- models/
+|   |-- services/
+|   |   |-- recorder_service.dart
+|   |   |-- app_service.dart
+|   |   |-- file_service.dart
+|   |   |-- settings_service.dart
+|   |   |-- diagnostics_service.dart
+|   |   `-- storage_service.dart
+|   `-- platform/
+|       |-- platform_controller.dart
+|       |-- capability_detector.dart
+|       |-- action_result.dart
+|       `-- platform_adapter.dart
+|-- windows/
+|-- macos/
+|-- linux/
+|-- android/
+|-- ios/
+|-- web/
+|-- assets/
+|-- test/
+|-- integration_test/
+|-- docs/
+|-- README.md
+|-- PROJECT_SPEC.txt
+`-- pubspec.yaml
+
+======================================================================
+4. PLATFORM ADAPTERS
+======================================================================
+
+Windows Adapter:
+- Windows Graphics Capture
+- Windows audio APIs
+- Windows process APIs
+- Windows settings URI
+- PowerShell commands from an allowlist only
+
+macOS Adapter:
+- ScreenCaptureKit
+- Replay and audio APIs
+- NSWorkspace
+- Apple Events only after permission
+- Screen Recording and Accessibility permissions
+
+Linux Adapter:
+- XDG Desktop Portal
+- PipeWire
+- D-Bus
+- X11 fallback where necessary
+- Desktop-specific settings adapters
+
+Android Adapter:
+- MediaProjection
+- Foreground Service
+- Storage Access Framework
+- Android intents
+- Accessibility features only when explicitly enabled and appropriate
+
+iOS / iPadOS Adapter:
+- ReplayKit
+- App-scoped file access
+- Document picker
+- URL schemes and universal links
+- No unrestricted control of other applications
+
+Web Adapter:
+- Browser Screen Capture API
+- MediaRecorder
+- File System Access API where available
+- Browser sandbox restrictions
+- No direct control of desktop applications or system settings
+
+======================================================================
+5. STANDARD AI ACTION FORMAT
+======================================================================
+
+Example action:
+
+{
+  "id": "cmd_20260727_001",
+  "action": "screen_recording.start",
+  "parameters": {
+    "source": "display",
+    "microphone": true,
+    "systemAudio": true,
+    "quality": "1080p",
+    "fps": 30,
+    "countdownSeconds": 3
+  },
+  "risk": "permission_required",
+  "requiresConfirmation": true
+}
+
+Example result:
+
+{
+  "commandId": "cmd_20260727_001",
+  "success": true,
+  "message": "Screen recording started.",
+  "platform": "windows",
+  "details": {
+    "outputFile": "recordings/recording_2026-07-27_143000.mp4"
+  }
+}
+
+======================================================================
+6. COMMAND FLOW
+======================================================================
+
+User Command
+    |
+    v
+Language Detection
+    |
+    v
+AI Command Parser
+    |
+    v
+Command Planner
+    |
+    v
+Risk Classifier
+    |
+    v
+Permission and Capability Check
+    |
+    v
+User Confirmation if Required
+    |
+    v
+Platform Adapter
+    |
+    v
+Action Result
+    |
+    v
+Activity Log and User Notification
+
+======================================================================
+7. MAIN USER INTERFACE
+======================================================================
+
+Home Dashboard:
+- AI command input.
+- Voice command button.
+- Emergency stop button.
+- System status cards.
+- Screen recorder shortcut.
+- Application manager shortcut.
+- File manager shortcut.
+- Settings shortcut.
+- Diagnostics shortcut.
+- Recent actions.
+
+Recorder Screen:
+- Recording source selector.
+- Microphone toggle.
+- System audio toggle.
+- Resolution selector.
+- FPS selector.
+- Countdown selector.
+- Start, pause, resume, and stop buttons.
+- Recording duration.
+- Output file list.
+
+Permission Center:
+- Display current permissions.
+- Explain why each permission is needed.
+- Open the operating system permission page.
+- Allow the user to disable features.
+- Show recent permission use.
+
+======================================================================
+8. DEVELOPMENT PHASES
+======================================================================
+
+Phase 1: Shared Core
+- Create Flutter project.
+- Create navigation and user interface.
+- Create standard action models.
+- Create command parser interface.
+- Create permission and risk models.
+- Create activity log.
+- Create emergency stop.
+
+Phase 2: Windows
+- Add screen recording.
+- Add process and application management.
+- Add settings launcher.
+- Add system information.
+- Add file management.
+
+Phase 3: Android and Linux
+- Add Android MediaProjection.
+- Add Linux PipeWire and portal integration.
+- Add platform capability reporting.
+
+Phase 4: macOS and iOS
+- Add ScreenCaptureKit.
+- Add ReplayKit.
+- Add Apple permission flows.
+- Add platform-specific restrictions.
+
+Phase 5: Web
+- Add browser screen capture.
+- Add web recording.
+- Add browser-compatible file access.
+
+Phase 6: AI Improvements
+- Thai voice commands.
+- Offline command model.
+- Multi-step command planning.
+- Troubleshooting assistant.
+- Command templates and favorites.
+
+======================================================================
+9. BUILD OUTPUTS
+======================================================================
+
+Windows:
+- .exe
+- .msix
+
+macOS:
+- .app
+- .dmg
+
+Linux:
+- AppImage
+- .deb
+- Flatpak
+
+Android:
+- .apk
+- .aab
+
+iOS:
+- Xcode archive
+- App Store package
+
+Web:
+- build/web
+
+======================================================================
+10. DEFINITION OF DONE
+======================================================================
+
+The first complete version is ready when:
+- The same Flutter interface runs on all target platforms.
+- The application reports available capabilities correctly.
+- Screen recording works on supported platforms.
+- Every important action passes through permission checks.
+- Unsupported commands return an honest explanation.
+- Activity logs are saved locally.
+- Emergency stop works immediately.
+- No screen, camera, or microphone recording can run secretly.
+- Native adapters return real success or failure results.
