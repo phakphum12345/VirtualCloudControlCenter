@@ -19,6 +19,11 @@ class AndroidPlatformAdapter implements PlatformAdapter {
     final method = switch (action.action) {
       'diagnostics.status' => 'getSystemStatus',
       'settings.open' => 'openSettings',
+      'screen_recording.start' => 'startRecording',
+      'screen_recording.pause' => 'pauseRecording',
+      'screen_recording.resume' => 'resumeRecording',
+      'screen_recording.stop' => 'stopRecording',
+      'screen_recording.status' => 'recordingStatus',
       _ => null,
     };
     if (method == null) {

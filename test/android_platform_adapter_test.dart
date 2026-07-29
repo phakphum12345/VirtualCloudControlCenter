@@ -36,16 +36,27 @@ void main() {
     expect(result.details['batteryPercent'], 80);
   });
 
-  test('does not claim unimplemented MediaProjection succeeded', () async {
+  test('maps recording start to native MediaProjection method', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'startRecording');
+          expect(call.arguments, containsPair('quality', '1080p'));
+          return {
+            'success': true,
+            'message': 'Android recording service started.',
+            'state': 'starting',
+            'visibleIndicator': true,
+          };
+        });
     final result = await adapter.execute(
       const AssistantAction(
         id: 'android-record',
         action: 'screen_recording.start',
-        parameters: {},
+        parameters: {'quality': '1080p'},
         risk: RiskLevel.confirmationRequired,
       ),
     );
-    expect(result.success, isFalse);
-    expect(result.details['reason'], 'not_implemented');
+    expect(result.success, isTrue);
+    expect(result.details['visibleIndicator'], isTrue);
   });
 }

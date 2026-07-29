@@ -6,8 +6,22 @@
 - Memory, storage, battery, and processor diagnostics
 - Allowlisted Wi-Fi, Bluetooth, display, storage, battery, notification, and
   sound Settings intents
-- Honest failure for screen recording until MediaProjection permission,
-  foreground service, visible notification, and output finalization are wired
+- Full-display H.264 MP4 recording through MediaProjection after the system
+  permission prompt
+- Visible foreground-service notification throughout capture
+- Pause, resume, stop, and app-scoped Movies output
+- Native readiness checks: start and lifecycle controls return success only
+  after the recorder confirms the requested state
+- Honest rejection of microphone and system audio until those capture paths are
+  implemented
+
+## Android next
+
+- Device/emulator integration tests for permission denial, encoder failure,
+  rotation, and process interruption
+- Microphone capture after runtime permission
+- Playback capture for system audio on supported Android versions
+- MediaStore export and recording history
 
 ## Linux foundation implemented
 
@@ -21,4 +35,4 @@
 - Desktop-specific D-Bus adapters beyond GNOME
 - Battery and network diagnostics
 
-No Android accessibility service is enabled or requested by this foundation.
+No Android accessibility service is enabled or requested.

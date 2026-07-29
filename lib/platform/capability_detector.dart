@@ -35,9 +35,11 @@ class CapabilityDetector {
       ),
       CapabilityStatus(
         capability: Capability.screenRecording,
-        available: windows,
+        available: windows || android,
         reason: windows
             ? 'Visible full-display H.264 MP4 recording is available without audio.'
+            : android
+            ? 'MediaProjection full-display H.264 MP4 recording is available after user approval, with a visible foreground notification and no audio.'
             : 'A native recorder adapter has not been installed.',
       ),
       CapabilityStatus(
