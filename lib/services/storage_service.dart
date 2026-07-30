@@ -4,12 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/audit_log/audit_entry.dart';
 import '../core/anti_theft/anti_theft_config.dart';
-import '../core/anti_theft/anti_theft_evidence.dart';
 
 class StorageService {
   static const _auditKey = 'audit_log_v1';
   static const _antiTheftKey = 'anti_theft_config_v1';
-  static const _antiTheftEvidenceKey = 'anti_theft_evidence_v1';
 
   Future<List<AuditEntry>> loadAuditEntries() async {
     final preferences = await SharedPreferences.getInstance();
@@ -44,27 +42,5 @@ class StorageService {
   Future<void> saveAntiTheftConfig(AntiTheftConfig config) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(_antiTheftKey, jsonEncode(config.toJson()));
-  }
-
-  Future<List<AntiTheftEvidence>> loadAntiTheftEvidence() async {
-    final preferences = await SharedPreferences.getInstance();
-    final values =
-        preferences.getStringList(_antiTheftEvidenceKey) ?? const <String>[];
-    return values
-        .map(
-          (value) => AntiTheftEvidence.fromJson(
-            Map<String, Object?>.from(jsonDecode(value) as Map),
-          ),
-        )
-        .where((value) => value.id.isNotEmpty)
-        .toList();
-  }
-
-  Future<void> saveAntiTheftEvidence(List<AntiTheftEvidence> evidence) async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setStringList(
-      _antiTheftEvidenceKey,
-      evidence.map((value) => jsonEncode(value.toJson())).toList(),
-    );
   }
 }
