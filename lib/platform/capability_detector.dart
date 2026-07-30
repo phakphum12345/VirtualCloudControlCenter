@@ -86,17 +86,22 @@ class CapabilityDetector {
         available: false,
         reason: 'Content filtering is planned for a later phase.',
       ),
-      const CapabilityStatus(
+      CapabilityStatus(
         capability: Capability.antiTheftCamera,
-        available: false,
-        reason:
-            'Owner policy is available, but no native camera adapter has been verified.',
+        available:
+            android || (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS),
+        reason: android
+            ? 'Foreground camera evidence capture is available after Android permission, with the operating-system camera indicator.'
+            : !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? 'Foreground-only camera evidence capture is available after iOS permission.'
+            : 'Anti-theft camera capture is available only on supported mobile platforms.',
       ),
-      const CapabilityStatus(
+      CapabilityStatus(
         capability: Capability.antiTheftUpload,
-        available: false,
+        available:
+            android || (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS),
         reason:
-            'No owner-authorized Google Drive account and folder are connected.',
+            'Encrypted Google Drive upload becomes available only after the owner signs in and grants drive.file access.',
       ),
     ];
   }

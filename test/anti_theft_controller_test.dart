@@ -36,8 +36,9 @@ void main() {
 
       expect(first.triggerRequested, isFalse);
       expect(second.triggerRequested, isTrue);
+      expect(controller.captureRequested, isTrue);
       expect(controller.config.pinHash, isNot('123456'));
-      expect(audit.entries.first.message, contains('ยังไม่เริ่มกล้อง'));
+      expect(audit.entries.first.message, contains('รอเปิดกล้อง'));
     },
   );
 

@@ -16,7 +16,8 @@ shell, Thai/English rule-based command parsing, action planning, risk and
 permission enforcement, persistent local audit logs, emergency stop, capability
 reporting, Windows diagnostics, process inspection and confirmed termination,
 allowlisted application/settings launching, volume control, large-file search,
-visible screenshots, and visible full-display H.264 MP4 recording.
+visible screenshots, visible full-display H.264 MP4 recording, and an
+owner-enabled anti-theft evidence mode for supported mobile platforms.
 
 ```bash
 flutter pub get
@@ -29,6 +30,20 @@ Windows recording supports video, countdown, pause, resume, stop, emergency
 termination, and verified output finalization. Microphone audio, system audio,
 and selected-window capture remain unavailable and return explicit failure. See
 [`docs/WINDOWS_PHASE2.md`](docs/WINDOWS_PHASE2.md) for the exact support boundary.
+
+## Owner-enabled Anti-Theft Evidence Mode
+
+The mobile application can require the owner's PIN at app startup and request a
+visible foreground camera recording after the configured failed-attempt
+threshold. Evidence is encrypted locally with chunked AES-256-GCM, constrained
+by retention settings, and can be uploaded to Google Drive only after explicit
+owner sign-in and `drive.file` authorization.
+
+This feature does not replace the operating-system lock screen, hide camera
+indicators, bypass permissions, block power or emergency controls, or guarantee
+recording after force-stop, shutdown, or operating-system suspension. See
+[`docs/ANTI_THEFT_MODE.md`](docs/ANTI_THEFT_MODE.md) for setup and platform
+limits.
 
 ## Application information
 
