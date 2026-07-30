@@ -2,6 +2,13 @@
 
 A cross-platform AI assistant for screen recording, application management, file management, system settings, diagnostics, and safe device automation.
 
+## License
+
+Copyright 2026 Phakphum.
+
+Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for
+project attribution.
+
 ## Current implementation
 
 Phase 1 Shared Core and the first Windows native adapter are implemented. The project includes the responsive Flutter
