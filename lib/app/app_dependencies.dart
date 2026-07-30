@@ -4,6 +4,7 @@ import '../ai_engine/command_planner.dart';
 import '../ai_engine/command_validator.dart';
 import '../ai_engine/risk_classifier.dart';
 import '../core/audit_log/audit_log_controller.dart';
+import '../core/anti_theft/anti_theft_controller.dart';
 import '../core/emergency_stop/emergency_stop_controller.dart';
 import '../core/permissions/permission_policy.dart';
 import '../platform/capability_detector.dart';
@@ -16,15 +17,20 @@ class AppDependencies {
   AppDependencies._({
     required this.appController,
     required this.capabilityDetector,
+    required this.antiTheftController,
   });
 
   final AppController appController;
   final CapabilityDetector capabilityDetector;
+  final AntiTheftController antiTheftController;
 
   static Future<AppDependencies> create() async {
     const capabilityDetector = CapabilityDetector();
-    final auditLog = AuditLogController(StorageService());
+    final storage = StorageService();
+    final auditLog = AuditLogController(storage);
     await auditLog.initialize();
+    final antiTheftController = AntiTheftController(storage, auditLog);
+    await antiTheftController.initialize();
     final emergencyStop = EmergencyStopController();
     final appController = AppController(
       const AiService(
@@ -42,6 +48,7 @@ class AppDependencies {
     return AppDependencies._(
       appController: appController,
       capabilityDetector: capabilityDetector,
+      antiTheftController: antiTheftController,
     );
   }
 }

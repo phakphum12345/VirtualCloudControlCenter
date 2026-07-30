@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/app_shell.dart';
+import '../screens/owner_lock_gate.dart';
 import 'app_dependencies.dart';
 import 'theme.dart';
 
@@ -15,7 +15,7 @@ class PhakphumAiAssistant extends StatelessWidget {
       title: 'Phakphum AI System Assistant',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      home: AppShell(dependencies: dependencies),
+      home: OwnerLockGate(dependencies: dependencies),
     );
   }
 }

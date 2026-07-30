@@ -137,7 +137,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
                       : (value) => setState(() => microphone = value),
                   title: const Text('ไมโครโฟน'),
                   subtitle: const Text(
-                    'Windows capture backend รุ่นนี้ยังไม่รองรับ',
+                    'Windows และ Android recorder รุ่นนี้ยังไม่รองรับ',
                   ),
                 ),
                 SwitchListTile(
@@ -147,7 +147,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
                       : (value) => setState(() => systemAudio = value),
                   title: const Text('เสียงจากระบบ'),
                   subtitle: const Text(
-                    'Windows capture backend รุ่นนี้ยังไม่รองรับ',
+                    'Windows และ Android recorder รุ่นนี้ยังไม่รองรับ',
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -226,7 +226,8 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'รองรับวิดีโอเต็มจอแบบ H.264 MP4 เฉพาะ Windows; '
+                  'รองรับวิดีโอเต็มจอแบบ H.264 MP4 บน Windows และ Android; '
+                  'Android จะแสดงหน้าขออนุญาตและการแจ้งเตือนตลอดการบันทึก '
                   'หากเลือกเสียง ระบบจะปฏิเสธอย่างชัดเจน',
                 ),
               ],

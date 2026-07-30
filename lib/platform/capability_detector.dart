@@ -12,12 +12,18 @@ class CapabilityDetector {
 
   List<CapabilityStatus> detect() {
     final windows = !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+    final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final linux = !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
     return [
       CapabilityStatus(
         capability: Capability.systemStatus,
         available: true,
         reason: windows
             ? 'Windows memory, disk, CPU, and process APIs are connected.'
+            : android
+            ? 'Android memory, disk, battery, and CPU APIs are connected.'
+            : linux
+            ? 'Linux procfs and filesystem diagnostics are connected.'
             : 'Basic platform identity is available.',
       ),
       CapabilityStatus(
@@ -29,9 +35,11 @@ class CapabilityDetector {
       ),
       CapabilityStatus(
         capability: Capability.screenRecording,
-        available: windows,
+        available: windows || android,
         reason: windows
             ? 'Visible full-display H.264 MP4 recording is available without audio.'
+            : android
+            ? 'MediaProjection full-display H.264 MP4 recording is available after user approval, with a visible foreground notification and no audio.'
             : 'A native recorder adapter has not been installed.',
       ),
       CapabilityStatus(
@@ -57,9 +65,13 @@ class CapabilityDetector {
       ),
       CapabilityStatus(
         capability: Capability.settingsLaunch,
-        available: windows,
+        available: windows || android || linux,
         reason: windows
             ? 'Allowlisted Windows Settings pages can be opened.'
+            : android
+            ? 'Allowlisted Android Settings intents can be opened.'
+            : linux
+            ? 'Allowlisted GNOME Settings panels can be opened when installed.'
             : 'A native settings adapter has not been installed.',
       ),
       CapabilityStatus(
@@ -73,6 +85,23 @@ class CapabilityDetector {
         capability: Capability.contentFiltering,
         available: false,
         reason: 'Content filtering is planned for a later phase.',
+      ),
+      CapabilityStatus(
+        capability: Capability.antiTheftCamera,
+        available:
+            android || (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS),
+        reason: android
+            ? 'Foreground camera evidence capture is available after Android permission, with the operating-system camera indicator.'
+            : !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+            ? 'Foreground-only camera evidence capture is available after iOS permission.'
+            : 'Anti-theft camera capture is available only on supported mobile platforms.',
+      ),
+      CapabilityStatus(
+        capability: Capability.antiTheftUpload,
+        available:
+            android || (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS),
+        reason:
+            'Encrypted Google Drive upload becomes available only after the owner signs in and grants drive.file access.',
       ),
     ];
   }
