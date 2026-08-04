@@ -4,33 +4,37 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('architecture policy', () {
-    test('production source does not introduce banned backend integrations', () {
-      final files = <File>[
-        ..._dartFiles('lib'),
-        File('pubspec.yaml'),
-      ].where((file) => file.existsSync());
+    test(
+      'production source does not introduce banned backend integrations',
+      () {
+        final files = <File>[
+          ..._dartFiles('lib'),
+          File('pubspec.yaml'),
+        ].where((file) => file.existsSync());
 
-      const bannedPatterns = <String, String>{
-        'laravel': 'Laravel is outside the approved Flutter-only architecture.',
-        'php artisan': 'PHP/Laravel commands are not allowed.',
-        'googleapis/calendar': 'Google Calendar API is not approved.',
-        'calendar/v3': 'Google Calendar API is not approved.',
-        'firebase_core': 'Firebase requires explicit architecture approval.',
-        'cloud_firestore': 'Firestore requires explicit architecture approval.',
-      };
+        const bannedPatterns = <String, String>{
+          'laravel':
+              'Laravel is outside the approved Flutter-only architecture.',
+          'php artisan': 'PHP/Laravel commands are not allowed.',
+          'googleapis/calendar': 'Google Calendar API is not approved.',
+          'calendar/v3': 'Google Calendar API is not approved.',
+          'firebase_core': 'Firebase requires explicit architecture approval.',
+          'cloud_firestore': 'Firestore requires explicit architecture approval.',
+        };
 
-      final violations = <String>[];
-      for (final file in files) {
-        final content = file.readAsStringSync().toLowerCase();
-        for (final entry in bannedPatterns.entries) {
-          if (content.contains(entry.key)) {
-            violations.add('${file.path}: ${entry.value}');
+        final violations = <String>[];
+        for (final file in files) {
+          final content = file.readAsStringSync().toLowerCase();
+          for (final entry in bannedPatterns.entries) {
+            if (content.contains(entry.key)) {
+              violations.add('${file.path}: ${entry.value}');
+            }
           }
         }
-      }
 
-      expect(violations, isEmpty, reason: violations.join('\n'));
-    });
+        expect(violations, isEmpty, reason: violations.join('\n'));
+      },
+    );
 
     test('Windows ICO build input exists', () {
       expect(
