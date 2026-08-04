@@ -1,0 +1,84 @@
+name: Quality Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - ai-native-flutter-complete
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "docs/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - ".github/workflows/quality.yml"
+  pull_request:
+    paths:
+      - "lib/**"
+      - "test/**"
+      - "docs/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+      - ".github/workflows/quality.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format, analyze, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Verify architecture policy files
+        shell: bash
+        run: |
+          test -f docs/AI_NATIVE_FLUTTER_ARCHITECTURE.md
+          test -f docs/AI_ENGINE_LOGIC.md
+          test -f docs/AI_SYSTEM_COMPLETE_LOGIC.md
+          test -f docs/TRACEABILITY_MATRIX.md
+          test -f docs/BUILD_ICON_RELEASE_LOGIC.md
+          test -f windows/runner/resources/app_icon.ico
+          test -f web/index.html
+
+      - name: Reject prohibited architecture dependencies
+        shell: bash
+        run: |
+          if grep -RniE --exclude-dir=.git --exclude='*.md' \
+            '(laravel|googleapis/calendar|google_calendar|firebase_core)' \
+            lib pubspec.yaml; then
+            echo 'A prohibited backend or calendar dependency was found.'
+            exit 1
+          fi
