@@ -1,0 +1,10 @@
+*.json
+*service-account*.json
+*credentials*.json
+.env
+.env.*
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec

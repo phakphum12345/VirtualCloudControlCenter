@@ -1,0 +1,73 @@
+name: Build Virtual Cloud Control Center
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install Control Center dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pyinstaller
+          python -m pip install -r tools/virtual-cloud/requirements.txt
+
+      - name: Build Control Center EXE
+        shell: pwsh
+        run: |
+          python -m PyInstaller `
+            --noconfirm `
+            --clean `
+            --onefile `
+            --windowed `
+            --collect-submodules googleapiclient `
+            --collect-submodules google_auth_oauthlib `
+            --collect-submodules google.oauth2 `
+            --name VirtualCloudControlCenter `
+            app/control_center.py
+
+      - name: Assemble portable package
+        shell: pwsh
+        run: |
+          $out = 'release/VirtualCloudControlCenter'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item 'dist/VirtualCloudControlCenter.exe' $out
+          $files = @(
+            'tools/virtual-cloud/bootstrap-control-plane.ps1',
+            'tools/virtual-cloud/authorize-gdrive-user.ps1',
+            'tools/virtual-cloud/build-control-center.ps1',
+            'tools/virtual-cloud/run-control-center.bat',
+            'tools/virtual-cloud/bridge_worker.py',
+            'tools/virtual-cloud/requirements.txt',
+            'app/control_center.py',
+            '.github/workflows/virtual-cloud-runners.yml',
+            '.github/workflows/virtual-cloud-drive-sync.yml',
+            '.github/workflows/build-control-center.yml',
+            '.gitignore','README.md','CONTROL_CENTER_README.md','AUDIT_REPORT.md'
+          )
+          foreach ($file in $files) {
+            if (Test-Path $file) { Copy-Item $file $out }
+          }
+
+      - name: Upload portable Control Center
+        uses: actions/upload-artifact@v4
+        with:
+          name: VirtualCloudControlCenter-Windows-${{ github.run_id }}
+          path: release/VirtualCloudControlCenter/
+          if-no-files-found: error
+          retention-days: 14

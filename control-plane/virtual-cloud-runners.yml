@@ -1,0 +1,151 @@
+name: Virtual Cloud Runners
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Runner target
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows
+          - macos
+      artifact_name:
+        description: Base artifact name
+        required: false
+        default: virtual-cloud-build
+        type: string
+      retention_days:
+        description: GitHub artifact retention days
+        required: false
+        default: '14'
+        type: string
+      source_repository:
+        description: Optional owner/repo to checkout instead of the control repo
+        required: false
+        default: ''
+        type: string
+      source_ref:
+        description: Optional branch/tag/SHA for source_repository
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.target == 'all' && '["windows-latest","macos-latest"]' || inputs.target == 'windows' && '["windows-latest"]' || '["macos-latest"]') }}
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout selected repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.source_repository || github.repository }}
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.MULTI_REPO_TOKEN || github.token }}
+          fetch-depth: 0
+
+      - name: Prepare output
+        shell: bash
+        run: mkdir -p virtual-cloud-output
+
+      - name: Record runner metadata
+        shell: bash
+        env:
+          SOURCE_REPOSITORY: ${{ inputs.source_repository || github.repository }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          REQUESTED_TARGET: ${{ inputs.target }}
+        run: |
+          python - <<'PY'
+          import json, os, platform
+          from pathlib import Path
+          data = {
+              "control_repository": os.environ.get("GITHUB_REPOSITORY"),
+              "source_repository": os.environ.get("SOURCE_REPOSITORY"),
+              "source_ref": os.environ.get("SOURCE_REF"),
+              "requested_target": os.environ.get("REQUESTED_TARGET"),
+              "run_id": os.environ.get("GITHUB_RUN_ID"),
+              "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "sha": os.environ.get("GITHUB_SHA"),
+              "ref": os.environ.get("GITHUB_REF"),
+              "runner_os": os.environ.get("RUNNER_OS"),
+              "runner_arch": os.environ.get("RUNNER_ARCH"),
+              "platform": platform.platform(),
+          }
+          Path("virtual-cloud-output/run-metadata.json").write_text(
+              json.dumps(data, indent=2), encoding="utf-8"
+          )
+          PY
+
+      - name: Run Windows build hook
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (Test-Path 'scripts/virtual-cloud-build.ps1') {
+            & 'scripts/virtual-cloud-build.ps1'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          elseif (Test-Path 'scripts/virtual-cloud-build.py') {
+            python 'scripts/virtual-cloud-build.py'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          elseif (Test-Path 'scripts/virtual-cloud-build.sh') {
+            bash 'scripts/virtual-cloud-build.sh'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          else {
+            'Windows runner proof completed. No project build hook was present.' | Set-Content -Encoding utf8 'virtual-cloud-output/build-result.txt'
+          }
+
+      - name: Run macOS build hook
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f scripts/virtual-cloud-build.sh ]; then
+            bash scripts/virtual-cloud-build.sh
+          elif [ -f scripts/virtual-cloud-build.py ]; then
+            python scripts/virtual-cloud-build.py
+          else
+            echo "macOS runner proof completed. No project build hook was present." > virtual-cloud-output/build-result.txt
+          fi
+
+      - name: Create SHA-256 manifest
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          root = Path("virtual-cloud-output")
+          root.mkdir(exist_ok=True)
+          lines = []
+          for p in sorted(root.rglob("*")):
+              if p.is_file() and p.name != "SHA256SUMS.txt":
+                  h = hashlib.sha256(p.read_bytes()).hexdigest()
+                  lines.append(f"{h}  {p.relative_to(root).as_posix()}")
+          (root / "SHA256SUMS.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload runner artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name || 'virtual-cloud-build' }}-${{ runner.os == 'Windows' && 'windows' || 'macos' }}-${{ github.run_id }}
+          path: virtual-cloud-output/
+          if-no-files-found: error
+          retention-days: ${{ fromJSON(inputs.retention_days) }}
