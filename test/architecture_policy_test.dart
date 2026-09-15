@@ -1,8 +1,8 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('architecture policy rules are respected', () {
-    // TODO: Add your architecture policy assertions here
+    // เพิ่มเงื่อนไขหรือการตรวจสอบสถาปัตยกรรมของคุณที่นี่
     expect(true, isTrue);
   });
 }
