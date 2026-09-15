@@ -8,7 +8,7 @@ on:
 
 # ยกเลิก Workflow เก่าที่ทำงานอยู่หากมีการ Push Commits ใหม่เข้ามาทับ
 concurrency:
-  group: ${{ github.workflow }}-${:?github.ref}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
