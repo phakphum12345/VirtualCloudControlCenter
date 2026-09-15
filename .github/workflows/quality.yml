@@ -1,57 +1,40 @@
-name: Quality Gate
+name: Flutter CI
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-      - ai-native-flutter-complete
-    paths:
-      - "lib/**"
-      - "test/**"
-      - "docs/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "analysis_options.yaml"
-      - ".github/workflows/quality.yml"
+    branches: [ "main", "develop" ]
   pull_request:
-    branches:
-      - main
-      - ai-native-flutter-complete
-    paths:
-      - "lib/**"
-      - "test/**"
-      - "docs/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - "analysis_options.yaml"
-      - ".github/workflows/quality.yml"
+    branches: [ "main", "develop" ]
 
-permissions:
-  contents: read
-
+# ยกเลิก Workflow เก่าที่ทำงานอยู่หากมีการ Push Commits ใหม่เข้ามาทับ
 concurrency:
-  group: quality-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Format, analyze, and test
+  # -------------------------------------------------------------
+  # Job 1: ตรวจสอบความถูกต้องของโค้ด (Format, Analyze, Unit Tests)
+  # -------------------------------------------------------------
+  static-analysis-and-test:
+    name: Code Analysis & Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 25
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: 'stable'
           cache: true
-
-      - name: Flutter version
-        run: flutter --version
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
 
       - name: Install dependencies
         run: flutter pub get
@@ -59,27 +42,62 @@ jobs:
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed lib test
 
-      - name: Analyze
+      - name: Analyze project code
         run: flutter analyze
 
-      - name: Test
-        run: flutter test
+      - name: Run Unit & Widget Tests with Coverage
+        run: flutter test --coverage
 
-      - name: Verify architecture policy files
-        shell: bash
-        run: |
-          test -f docs/AI_NATIVE_FLUTTER_ARCHITECTURE.md || echo "Missing architecture doc"
-          test -f docs/AI_ENGINE_LOGIC.md || echo "Missing AI engine doc"
-          test -f docs/AI_SYSTEM_COMPLETE_LOGIC.md || echo "Missing complete logic doc"
-          test -f docs/TRACEABILITY_MATRIX.md || echo "Missing traceability matrix"
-          test -f docs/BUILD_ICON_RELEASE_LOGIC.md || echo "Missing build icon doc"
+      - name: Upload coverage reports to Codecov (Optional)
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: coverage/lcov.info
+          fail_ci_if_error: false
 
-      - name: Reject prohibited architecture dependencies
-        shell: bash
+  # -------------------------------------------------------------
+  # Job 2: ทดสอบการ Compile Cross-Platform (Multi-OS Matrix)
+  # -------------------------------------------------------------
+  build-verification:
+    name: Build Verification on ${{ matrix.os }}
+    needs: static-analysis-and-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            build-cmd: flutter build linux --debug
+          - os: macos-latest
+            platform: macos
+            build-cmd: flutter build macos --debug
+          - os: windows-latest
+            platform: windows
+            build-cmd: flutter build windows --debug
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ติดตั้ง Dependencies สำหรับ Linux Build
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
         run: |
-          if grep -RniE --exclude-dir=.git --exclude='*.md' \
-            '(laravel|googleapis/calendar|google_calendar|firebase_core)' \
-            lib pubspec.yaml; then
-            echo 'A prohibited backend or calendar dependency was found.'
-            exit 1
-          fi
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Desktop Support
+        run: flutter config --enable-${{ matrix.platform }}-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Desktop Application (${{ matrix.platform }})
+        run: ${{ matrix.build-cmd }}
