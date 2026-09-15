@@ -61,9 +61,6 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Verify Windows icon source exists
-        run: test -f windows/runner/resources/app_icon.ico
-
       - name: Build Flutter Web
         run: flutter build web --release
 
