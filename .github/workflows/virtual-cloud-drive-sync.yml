@@ -1,0 +1,54 @@
+name: Virtual Cloud Drive Sync
+
+on:
+  workflow_run:
+    workflows: ["Virtual Cloud Runners"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Existing Virtual Cloud Runners run ID to sync again without rebuilding
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: virtual-cloud-drive-sync-${{ github.event_name == 'workflow_dispatch' && inputs.source_run_id || github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  sync-to-drive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout bridge source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install bridge dependencies
+        run: pip install -r tools/virtual-cloud/requirements.txt
+
+      - name: Sync GitHub run to Drive Virtual Cloud
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.source_run_id || github.event.workflow_run.id }}
+          GDRIVE_USER_CREDENTIALS_JSON: ${{ secrets.GDRIVE_USER_CREDENTIALS_JSON }}
+          GDRIVE_ARTIFACTS_FOLDER_ID: ${{ secrets.GDRIVE_ARTIFACTS_FOLDER_ID }}
+          GDRIVE_LOGS_FOLDER_ID: ${{ secrets.GDRIVE_LOGS_FOLDER_ID }}
+          GDRIVE_RUN_METADATA_FOLDER_ID: ${{ secrets.GDRIVE_RUN_METADATA_FOLDER_ID }}
+          GDRIVE_CHECKSUMS_FOLDER_ID: ${{ secrets.GDRIVE_CHECKSUMS_FOLDER_ID }}
+          GDRIVE_RECEIPTS_FOLDER_ID: ${{ secrets.GDRIVE_RECEIPTS_FOLDER_ID }}
+          GDRIVE_SYNC_PENDING_FOLDER_ID: ${{ secrets.GDRIVE_SYNC_PENDING_FOLDER_ID }}
+          GDRIVE_SYNC_COMPLETED_FOLDER_ID: ${{ secrets.GDRIVE_SYNC_COMPLETED_FOLDER_ID }}
+          GDRIVE_SYNC_FAILED_FOLDER_ID: ${{ secrets.GDRIVE_SYNC_FAILED_FOLDER_ID }}
+        run: python tools/virtual-cloud/bridge_worker.py
